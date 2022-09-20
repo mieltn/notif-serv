@@ -26,16 +26,9 @@ class ClientSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
 
-    # mailinglist = serializers.PrimaryKeyRelatedField(read_only=False, queryset=MailingList.objects.all())
-    # client = serializers.PrimaryKeyRelatedField(read_only=False, queryset=Client.objects.all())
-
-    # mailinglist = MailingListSerializer()
-    # client = ClientSerializer()
-
     def create(self, validated_data):
         return Message.objects.create(**validated_data)
 
     class Meta:
         model = Message
         fields = ('__all__')
-        # fields = ('sendDatetime', 'status', 'mailinglist', 'client')

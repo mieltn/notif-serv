@@ -58,8 +58,6 @@ class MailingLists(APIView):
 
         for client in clients:
             
-            # startDT = datetime.fromisoformat(mailinglist.startDatetime)
-            # expDT = datetime.fromisoformat(mailinglist.expDatetime)
             startDT = mailinglist.startDatetime
             expDT = mailinglist.expDatetime
 
@@ -81,24 +79,11 @@ class MailingLists(APIView):
                 )
 
     def post(self, request):
-        # data = {
-        #     'startDatetime': datetime.strptime(
-        #         request.data.get('startDatetime'),
-        #         self.timefmt
-        #     ),
-        #     'text': request.data.get('text'),
-        #     'fltr': request.data.get('fltr'),
-        #     'expDatetime': datetime.strptime(
-        #         request.data.get('expDatetime'),
-        #         self.timefmt
-        #     )
-        # }
         
         serializer = MailingListSerializer(data=request.data)
+        
         if serializer.is_valid():
             serializer.save()
-            # print(timezone.now())
-            # print(TIME_ZONE)
             self.scheduleMailings(serializer.data)
 
             return JsonResponse({'message': 'successfully created new mailing list', 'object': serializer.data})

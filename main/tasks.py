@@ -7,14 +7,16 @@ from .serializers import MessageSerializer
 URL = f'https://google.com'
 HEADERS = {'Content-Type': 'application/json'}
 
+
 @shared_task
 def sendMessageTask(mailinglist, client, phoneNumber, text):
     data = {
         'sendDatetime': timezone.now(),
         'status': -1,
-        'mailinglist_id': mailinglist,
-        'client_id': client
+        'mailinglist': mailinglist,
+        'client': client
     }
+
     serializer = MessageSerializer(data=data)
     if serializer.is_valid():
         instance = serializer.save()
@@ -28,5 +30,9 @@ def sendMessageTask(mailinglist, client, phoneNumber, text):
                 'text': text
             }
         )
-        instance.status = r.json()['code']
+        # instance.status = r.json()['code']
+        instance.status = r.status_code
         instance.save()
+        return serializer.data
+
+    return serializer.errors
