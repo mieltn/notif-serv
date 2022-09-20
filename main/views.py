@@ -1,38 +1,38 @@
 from rest_framework.views import APIView
 from django.http import JsonResponse
-from .models import MailingList, Client, Message
+from .models import MailingList, Client
 from .serializers import MailingListSerializer, ClientSerializer, MessageSerializer
+from django.core import serializers
+
+from .tasks import sendMessageTask
+
+from datetime import datetime
+from pytz import timezone
+from django.utils import timezone
+from notifserv.settings import TIME_ZONE
 
 class Clients(APIView):
 
     def post(self, request):
-        data = {
-            'phoneNumber': request.data.get('phoneNumber'),
-            'operCode': request.data.get('operCode'),
-            'tag': request.data.get('tag'),
-            'tz': request.data.get('tz')
-        }
-        serializer = ClientSerializer(data=data)
+
+        serializer = ClientSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse({'message': 'successfully created new client', 'object': data})
+            return JsonResponse({'message': 'successfully created new client', 'object': serializer.data})
 
-        return JsonResponse({'message': 'failed to create new client', 'object': data, 'error': serializer.errors})
+        return JsonResponse({'message': 'failed to create new client', 'object': serializer.data, 'error': serializer.errors})
 
-    def put(self, request):
+    def patch(self, request):
         client = Client.objects.get(pk=request.data.get('id'))
 
-        client.phoneNumber = request.data.get('phoneNumber', client.phoneNumber)
-        client.operCode = request.data.get('operCode', client.operCode)
-        client.tag = request.data.get('tag', client.tag)
-        client.tz = request.data.get('tz', client.tz)
+        serializer = ClientSerializer(client, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
 
-        client.save()
+            return JsonResponse({'message': 'successfully updated the client', 'object': serializer.data})
 
-        serializer = ClientSerializer(client)
-
-        return JsonResponse({'message': 'successfully updated the client', 'object': serializer.data})
+        return JsonResponse({'message': 'failed to update the client', 'object': serializer.data, 'error': serializer.errors})
 
     def delete(self, request):
         client = Client.objects.get(pk=request.data.get('id'))
@@ -45,18 +45,78 @@ class Clients(APIView):
 
 class MailingLists(APIView):
 
+    # dtfmt = '%Y-%m-%dT%H:%M:%S %z'
+
+    def scheduleMailings(self, data):
+
+        mailinglist = MailingList.objects.get(pk=data['id'])
+        if isinstance(mailinglist.fltr, int):
+            clients = Client.objects.filter(operCode=mailinglist.fltr)
+        else:
+            clients = Client.objects.filter(tag=mailinglist.fltr)
+        
+
+        for client in clients:
+            
+            # startDT = datetime.fromisoformat(mailinglist.startDatetime)
+            # expDT = datetime.fromisoformat(mailinglist.expDatetime)
+            startDT = mailinglist.startDatetime
+            expDT = mailinglist.expDatetime
+
+            if client.tz != TIME_ZONE:
+                startDT = startDT.astimezone(timezone(client.tz))
+                expDT = expDT.astimezone(timezone(client.tz))
+
+            if startDT < timezone.now() < expDT:
+                sendMessageTask.apply_async(
+                    args=[mailinglist.id, client.id, client.phoneNumber, mailinglist.text],
+                    expires=expDT
+                )
+
+            else:
+                sendMessageTask.apply_async(
+                    args=[mailinglist.id, client.id, client.phoneNumber, mailinglist.text],
+                    eta=startDT,
+                    expires=expDT
+                )
+
     def post(self, request):
+        # data = {
+        #     'startDatetime': datetime.strptime(
+        #         request.data.get('startDatetime'),
+        #         self.timefmt
+        #     ),
+        #     'text': request.data.get('text'),
+        #     'fltr': request.data.get('fltr'),
+        #     'expDatetime': datetime.strptime(
+        #         request.data.get('expDatetime'),
+        #         self.timefmt
+        #     )
+        # }
+        
+        serializer = MailingListSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            # print(timezone.now())
+            # print(TIME_ZONE)
+            self.scheduleMailings(serializer.data)
 
-    def put(self, request):
+            return JsonResponse({'message': 'successfully created new mailing list', 'object': serializer.data})
 
-    def delete(self, request):
-
-
-class GeneralStat(APIView):
+        return JsonResponse({'message': 'failed to create new mailing list', 'object': serializer.data, 'error': serializer.errors})
 
 
-class DetailedStat(APIView):
+
+#     def put(self, request):
+
+#     def delete(self, request):
 
 
-class SendMessages(APIView):
-    
+# class GeneralStat(APIView):
+#     def get(self, request):
+
+
+
+# class DetailedStat(APIView):
+#     def get(self, request):
+

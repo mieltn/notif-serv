@@ -2,10 +2,10 @@ from django.db import models
 
 
 class MailingList(models.Model):
-    sendDatetime = models.DateTimeField()
+    startDatetime = models.DateTimeField()
     text = models.CharField(max_length=500)
     fltr = models.CharField(max_length=50)
-    endDatetime = models.DateTimeField()
+    expDatetime = models.DateTimeField()
 
 
 class Client(models.Model):
