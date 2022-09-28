@@ -1,15 +1,17 @@
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from .models import MailingList, Client
-from .serializers import MailingListSerializer, ClientSerializer, MessageSerializer
-from django.core import serializers
+from .serializers import MailingListSerializer, ClientSerializer
+# from django.core import serializers
 
-from .tasks import sendMessageTask
+from notifserv.celery import app
+
+from .tasks import scheduleMailingTask, sendMessageTask
 
 from datetime import datetime
 from pytz import timezone
 from django.utils import timezone
-from notifserv.settings import TIME_ZONE
+
 
 class Clients(APIView):
 
@@ -23,8 +25,8 @@ class Clients(APIView):
 
         return JsonResponse({'message': 'failed to create new client', 'object': serializer.data, 'error': serializer.errors})
 
-    def patch(self, request):
-        client = Client.objects.get(pk=request.data.get('id'))
+    def patch(self, request, id):
+        client = Client.objects.get(pk=id)
 
         serializer = ClientSerializer(client, data=request.data, partial=True)
         if serializer.is_valid():
@@ -34,8 +36,8 @@ class Clients(APIView):
 
         return JsonResponse({'message': 'failed to update the client', 'object': serializer.data, 'error': serializer.errors})
 
-    def delete(self, request):
-        client = Client.objects.get(pk=request.data.get('id'))
+    def delete(self, request, id):
+        client = Client.objects.get(pk=id)
         client.delete()
 
         serializer = ClientSerializer(client)
@@ -45,46 +47,21 @@ class Clients(APIView):
 
 class MailingLists(APIView):
 
-    # dtfmt = '%Y-%m-%dT%H:%M:%S %z'
-
-    def scheduleMailings(self, data):
-
-        mailinglist = MailingList.objects.get(pk=data['id'])
-        if isinstance(mailinglist.fltr, int):
-            clients = Client.objects.filter(operCode=mailinglist.fltr)
-        else:
-            clients = Client.objects.filter(tag=mailinglist.fltr)
-        
-
-        for client in clients:
-            
-            startDT = mailinglist.startDatetime
-            expDT = mailinglist.expDatetime
-
-            if client.tz != TIME_ZONE:
-                startDT = startDT.astimezone(timezone(client.tz))
-                expDT = expDT.astimezone(timezone(client.tz))
-
-            if startDT < timezone.now() < expDT:
-                sendMessageTask.apply_async(
-                    args=[mailinglist.id, client.id, client.phoneNumber, mailinglist.text],
-                    expires=expDT
-                )
-
-            else:
-                sendMessageTask.apply_async(
-                    args=[mailinglist.id, client.id, client.phoneNumber, mailinglist.text],
-                    eta=startDT,
-                    expires=expDT
-                )
-
     def post(self, request):
         
-        serializer = MailingListSerializer(data=request.data)
-        
+        serializer = MailingListSerializer(data=request.data, partial=True)
+
         if serializer.is_valid():
-            serializer.save()
-            self.scheduleMailings(serializer.data)
+            mailinglist = serializer.save()
+
+            tresp = scheduleMailingTask.apply_async(
+                args=[serializer.data],
+                eta = mailinglist.startDatetime,
+                expires = mailinglist.expDatetime
+            )
+
+            mailinglist.taskId = tresp.id
+            mailinglist.save()
 
             return JsonResponse({'message': 'successfully created new mailing list', 'object': serializer.data})
 
@@ -92,9 +69,32 @@ class MailingLists(APIView):
 
 
 
-#     def put(self, request):
+    def patch(self, request, id):
+        mailinglist = MailingList.objects.get(pk=id)
 
-#     def delete(self, request):
+        serializer = MailingListSerializer(mailinglist, data=request.data, partial=True)
+        if serializer.is_valid():
+            taskOld = mailinglist.taskId
+            app.control.revoke(taskOld, terminate=True)
+
+            mailinglist = serializer.save()
+
+            tresp = scheduleMailingTask.apply_async(
+                args=[serializer.data],
+                eta = mailinglist.startDatetime,
+                expires = mailinglist.expDatetime
+            )
+            mailinglist.taskId = tresp.id
+            mailinglist.save()
+
+            return JsonResponse({'message': 'successfully updated the mailing list', 'object': serializer.data})
+
+        return JsonResponse({'message': 'failed to update the mailing list', 'object': serializer.data, 'error': serializer.errors})
+            
+
+
+
+    # def delete(self, request, id):
 
 
 # class GeneralStat(APIView):

@@ -4,6 +4,10 @@ from .models import MailingList, Client, Message
 
 
 class MailingListSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        return MailingList.objects.create(**validated_data)
+
     class Meta:
         model = MailingList
         fields = ('__all__')

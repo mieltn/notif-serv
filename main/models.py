@@ -6,6 +6,7 @@ class MailingList(models.Model):
     text = models.CharField(max_length=500)
     fltr = models.CharField(max_length=50)
     expDatetime = models.DateTimeField()
+    taskId = models.CharField(max_length=50, blank=True)
 
 
 class Client(models.Model):
