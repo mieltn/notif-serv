@@ -1,3 +1,4 @@
+from tracemalloc import Statistic
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.db.models import Count
@@ -9,10 +10,6 @@ from .serializers import MailingListSerializer, ClientSerializer
 from notifserv.celery import app
 
 from .tasks import scheduleMailingTask
-
-# from datetime import datetime
-# from pytz import timezone
-# from django.utils import timezone
 
 
 class Clients(APIView):
@@ -45,6 +42,7 @@ class Clients(APIView):
         serializer = ClientSerializer(client)
 
         return JsonResponse({'message': 'successfully deleted the client', 'object': serializer.data})
+
 
 
 class MailingLists(APIView):
@@ -114,9 +112,28 @@ class GeneralStat(APIView):
             msStat = list(messages.values('status').annotate(messagesSent=Count('id')))
             stat[mailing.id] = msStat
 
-        return JsonResponse({'message': 'General statistics about mailings and messages sent by status', 'data': stat})
+        return JsonResponse({'info': 'General statistics about mailings and messages sent by status', 'data': stat})
 
 
-# class DetailedStat(APIView):
-#     def get(self, request):
+class DetailedStat(APIView):
+    def get(self, request, id):
+        stat = {}
+        mailing = MailingList.objects.get(pk=id)
+        stat['mailing list'] = mailing.id
+        stat['mailing text'] = mailing.text
+        stat['mailing filter (operator code or tag)'] = mailing.fltr
+        messages = list(mailing.message_set.select_related())
+        msStat = []
+        for message in messages:
+            msStat.append(
+                {
+                    'message_id': message.id,
+                    'sendDatetime': message.sendDatetime,
+                    'status': message.status,
+                    'client_id': message.client_id
+                }
+            )
+        stat['messages'] = msStat
+
+        return JsonResponse({'info': f'Detailed information about mailing {mailing.id} and messages sent', 'data': stat})
 

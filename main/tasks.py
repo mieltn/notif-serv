@@ -14,8 +14,9 @@ HEADERS = {'Content-Type': 'application/json'}
 def scheduleMailingTask(data):
 
     mailinglist = MailingList.objects.get(pk=data['id'])
-    if isinstance(mailinglist.fltr, int):
-        clients = Client.objects.filter(operCode=mailinglist.fltr)
+
+    if mailinglist.fltr.isdigit() and len(mailinglist.fltr) == 3:
+        clients = Client.objects.filter(operCode=int(mailinglist.fltr))
     else:
         clients = Client.objects.filter(tag=mailinglist.fltr)
     

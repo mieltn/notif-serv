@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Clients, GeneralStat, MailingLists
+from .views import Clients, MailingLists, DetailedStat, GeneralStat
 
 urlpatterns = [
     path('clients/', Clients.as_view()),
@@ -7,5 +7,5 @@ urlpatterns = [
     path('mailinglists/', MailingLists.as_view()),
     path('mailinglists/<int:id>', MailingLists.as_view()),
     path('generalstat/', GeneralStat.as_view()),
-    # path('detailedstat/', DetailedStat.as_view()),
+    path('detailedstat/<int:id>', DetailedStat.as_view()),
 ]
