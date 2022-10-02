@@ -43,7 +43,7 @@ class Clients(APIView):
             )
 
         return JsonResponse(
-            {'message': 'failed to create new client', 'object': serializer.data, 'error': serializer.errors},
+            {'message': 'failed to update the client', 'object': serializer.data, 'error': serializer.errors},
             status = status.HTTP_400_BAD_REQUEST
         )
 
@@ -76,9 +76,15 @@ class MailingLists(APIView):
             mailinglist.taskId = tresp.id
             mailinglist.save()
 
-            return JsonResponse({'message': 'successfully created new mailing list', 'object': serializer.data})
+            return JsonResponse(
+                {'message': 'successfully created new mailing list', 'object': serializer.data},
+                status=status.HTTP_201_CREATED
+            )
 
-        return JsonResponse({'message': 'failed to create new mailing list', 'object': serializer.data, 'error': serializer.errors})
+        return JsonResponse(
+            {'message': 'failed to create new mailing list', 'object': serializer.data, 'error': serializer.errors},
+            status = status.HTTP_400_BAD_REQUEST
+        )
 
 
     def patch(self, request, id):
@@ -98,9 +104,15 @@ class MailingLists(APIView):
             mailinglist.taskId = tresp.id
             mailinglist.save()
 
-            return JsonResponse({'message': 'successfully updated the mailing list', 'object': serializer.data})
+            return JsonResponse(
+                {'message': 'successfully updated the mailing list', 'object': serializer.data},
+                status=status.HTTP_200_OK
+            )
 
-        return JsonResponse({'message': 'failed to update the mailing list', 'object': serializer.data, 'error': serializer.errors})
+        return JsonResponse(
+            {'message': 'failed to update the mailing list', 'object': serializer.data, 'error': serializer.errors},
+            status = status.HTTP_400_BAD_REQUEST
+        )
             
 
     def delete(self, request, id):
@@ -108,9 +120,10 @@ class MailingLists(APIView):
         app.control.revoke(mailinglist.taskId, terminate=True)
         mailinglist.delete()
 
-        serializer = MailingListSerializer(mailinglist)
-
-        return JsonResponse({'message': 'successfully deleted the mailing list', 'object': serializer.data})
+        return JsonResponse(
+            {'message': f'successfully deleted mailing list {id}'},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 

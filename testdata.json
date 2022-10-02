@@ -1,0 +1,70 @@
+{
+    "clients": [
+        {
+            "phoneNumber": 79629583294,
+            "operCode": 962,
+            "tag": "newtag",
+            "tz": "Asia/Tashkent"
+        },
+        {
+            "phoneNumber": 79998887766,
+            "operCode": 999,
+            "tag": "another tag",
+            "tz": "Asia/Tashkent"
+        },
+        {
+            "phoneNumber": 71112223344,
+            "operCode": 111,
+            "tag": "newtag",
+            "tz": "Asia/Tashkent"
+        },
+        {
+            "phoneNumber": 79621234567,
+            "operCode": 962,
+            "tag": "third tag",
+            "tz": "Asia/Tashkent"
+        },
+        {
+            "phoneNumber": 79039876543,
+            "operCode": 903,
+            "tag": "random tag",
+            "tz": "Europe/Moscow"
+        }
+    ],
+    "mailings": {
+        "late by tag": {
+            "startDatetime": "2022-10-02 17:15",
+            "text": "message for best clients",
+            "fltr": "newtag",
+            "expDatetime": "2022-10-07 21:00"
+        },
+        "late by operator code": {
+            "startDatetime": "2022-10-02 17:15",
+            "text": "message for best clients",
+            "fltr": "962",
+            "expDatetime": "2022-10-07 21:00"
+        },
+        "scheduled by opertaor code": {
+            "startDatetime": "2022-10-02 19:30",
+            "text": "message for clients in future",
+            "fltr": "962",
+            "expDatetime": "2022-10-07 21:00"
+        },
+        "scheduled to be updated": {
+            "startDatetime": "2022-10-02 19:50",
+            "text": "message for clients in future",
+            "fltr": "newtag",
+            "expDatetime": "2022-10-07 21:00"
+        },
+        "mailing time and text update": {
+            "startDatetime": "2022-10-02 18:00",
+            "text": "this message was changed"
+        },
+        "expired": {
+            "startDatetime": "2022-10-02 17:00",
+            "text": "expired message",
+            "fltr": "newtag",
+            "expDatetime": "2022-10-02 18:05"
+        }
+    }
+}
