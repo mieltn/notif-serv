@@ -1,5 +1,5 @@
-from tracemalloc import Statistic
 from rest_framework.views import APIView
+from rest_framework import status
 from django.http import JsonResponse
 from django.db.models import Count
 
@@ -20,9 +20,15 @@ class Clients(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse({'message': 'successfully created new client', 'object': serializer.data})
+            return JsonResponse(
+                {'message': 'successfully created new client', 'object': serializer.data},
+                status=status.HTTP_201_CREATED
+            )
 
-        return JsonResponse({'message': 'failed to create new client', 'object': serializer.data, 'error': serializer.errors})
+        return JsonResponse(
+            {'message': 'failed to create new client', 'object': serializer.data, 'error': serializer.errors},
+            status = status.HTTP_400_BAD_REQUEST
+        )
 
     def patch(self, request, id):
         client = Client.objects.get(pk=id)
@@ -31,17 +37,24 @@ class Clients(APIView):
         if serializer.is_valid():
             serializer.save()
 
-            return JsonResponse({'message': 'successfully updated the client', 'object': serializer.data})
+            return JsonResponse(
+                {'message': 'successfully updated the client', 'object': serializer.data},
+                status=status.HTTP_200_OK
+            )
 
-        return JsonResponse({'message': 'failed to update the client', 'object': serializer.data, 'error': serializer.errors})
+        return JsonResponse(
+            {'message': 'failed to create new client', 'object': serializer.data, 'error': serializer.errors},
+            status = status.HTTP_400_BAD_REQUEST
+        )
 
     def delete(self, request, id):
         client = Client.objects.get(pk=id)
         client.delete()
 
-        serializer = ClientSerializer(client)
-
-        return JsonResponse({'message': 'successfully deleted the client', 'object': serializer.data})
+        return JsonResponse(
+            {'message': f'successfully deleted client {id}'},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 
@@ -112,7 +125,10 @@ class GeneralStat(APIView):
             msStat = list(messages.values('status').annotate(messagesSent=Count('id')))
             stat[mailing.id] = msStat
 
-        return JsonResponse({'info': 'General statistics about mailings and messages sent by status', 'data': stat})
+        return JsonResponse(
+            {'info': 'General statistics about mailings and messages sent by status', 'data': stat},
+            status = status.HTTP_200_OK
+        )
 
 
 class DetailedStat(APIView):
@@ -135,5 +151,8 @@ class DetailedStat(APIView):
             )
         stat['messages'] = msStat
 
-        return JsonResponse({'info': f'Detailed information about mailing {mailing.id} and messages sent', 'data': stat})
+        return JsonResponse(
+            {'info': f'Detailed information about mailing {mailing.id} and messages sent', 'data': stat},
+            status = status.HTTP_200_OK
+        )
 
