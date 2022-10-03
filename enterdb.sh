@@ -1,5 +1,5 @@
 if [ $PGPASSWORD -z ]
 then
-	export PGPASSWORD=secretpassword
+	export PGPASSWORD=postgres
 fi
-psql -h localhost -U postgres -d notifserv
+psql -h localhost -U postgres -d postgres

@@ -5,7 +5,6 @@ from django.db.models import Count
 
 from .models import MailingList, Client
 from .serializers import MailingListSerializer, ClientSerializer
-# from django.core import serializers
 
 from notifserv.celery import app
 

@@ -25,19 +25,25 @@ def testMailingCreation(mailing, url, headers):
 def testMailingUpdate(data, newdata, url, headers):
     mailing = requests.post(url, data=json.dumps(data), headers=headers).json()
     response = requests.patch(url + str(mailing['object']['id']), data=json.dumps(newdata), headers=headers)
-    
+
     if response.status_code != status.HTTP_200_OK:
         return 'FAILED, response code: {}'.format(response.status_code)
 
     return 'OK'
 
 
+# def testGeneralStat():
+
+# def testDetailedStat():
+
+
+
 if __name__ == "__main__":
 
     createClientURL = 'http://localhost:8000/clients/'
     createMailingURL = 'http://localhost:8000/mailinglists/'
-    generalStatURL = 'http://localhost:8000/generalstat/'
-    detailedStatURL = 'http://localhost:8000/deatiledstat/'
+    # generalStatURL = 'http://localhost:8000/generalstat/'
+    # detailedStatURL = 'http://localhost:8000/deatiledstat/'
 
     headers = {
         'Content-Type': 'application/json'
