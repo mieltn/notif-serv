@@ -9,7 +9,4 @@ RUN pip install -r requirements.txt
 COPY ./start.sh .
 RUN chmod +x start.sh
 
-COPY ./startcelery.sh .
-RUN chmod +x startcelery.sh
-
 WORKDIR /app

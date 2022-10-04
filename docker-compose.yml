@@ -37,7 +37,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: notifserv_celery
-    command: bash startcelery.sh
+    command: celery -A notifserv worker -l info
     env_file:
       - .env
     volumes:
