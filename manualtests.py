@@ -1,6 +1,7 @@
 from rest_framework import status
 import requests
 import json
+import time
 
 
 def uploadClients(clients, url, headers):
@@ -32,22 +33,27 @@ def testMailingUpdate(data, newdata, url, headers):
     return 'OK'
 
 
-# def testGeneralStat():
+def testGeneralStat(url):
+    response = requests.get(url)
+    return response.json()
 
-# def testDetailedStat():
 
+def testDetailedStat(url, messageId):
+    response = requests.get(url + str(messageId))
+    return response.json()
+
+
+createClientURL = 'http://localhost:8000/clients/'
+createMailingURL = 'http://localhost:8000/mailinglists/'
+generalStatURL = 'http://localhost:8000/generalstat/'
+detailedStatURL = 'http://localhost:8000/detailedstat/'
+
+headers = {
+    'Content-Type': 'application/json'
+}
 
 
 if __name__ == "__main__":
-
-    createClientURL = 'http://localhost:8000/clients/'
-    createMailingURL = 'http://localhost:8000/mailinglists/'
-    # generalStatURL = 'http://localhost:8000/generalstat/'
-    # detailedStatURL = 'http://localhost:8000/deatiledstat/'
-
-    headers = {
-        'Content-Type': 'application/json'
-    }
 
     with open("testdata.json", "r") as file:
         data = json.loads(file.read())
@@ -100,6 +106,12 @@ if __name__ == "__main__":
             headers = headers
         )
     )
+
+    print('\nwaiting for celery tasks to complete\n')
+    time.sleep(5)
+
+    print(testGeneralStat(generalStatURL))
+    print(testDetailedStat(detailedStatURL, 1))
 
 
 
