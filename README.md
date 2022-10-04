@@ -1,5 +1,5 @@
 # Notification Service
-Django API for creating and managing mailings, and sending them to different clients to external endpoint.
+Django API for creating, managing and sending mailings to different clients to external endpoint.
 
 ## How to start the API from Docker
 
@@ -10,7 +10,7 @@ Django API for creating and managing mailings, and sending them to different cli
 ## Functionality and testing
 
 - API documentation can be found in 
-- To test different views <i>manualtests.py</i> can be run. It uses <i>testdata.json</i> to populate database and schedules several mailings to test main logic. Since service uses Celery to handle scheduling, tasks might be not completed immediately. Monitor docker compose log in terminal.
+- To test different views <i>manualtests.py</i> can be run. It uses <i>testdata.json</i> to populate database and schedules several mailings to test main logic. Since service uses Celery to handle scheduling, tasks might be not completed immediately. Monitor the docker compose log in terminal.
 - After running manual tests, execute `bash enterdb.sh` to enter the backend database and explore the results with SQL.
 - For client views unit tests using Django Testing framework are also created.
 - Custom requests to API endpoints can be sent using any other tools like Postman, curl etc.
